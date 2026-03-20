@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SkyBook AI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, sans-serif;
+      background: #0f172a;
+      color: #f1f5f9;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: #1e293b;
+      padding: 16px;
+      text-align: center;
+      border-bottom: 1px solid #334155;
+    }
+    .header h1 { font-size: 18px; font-weight: 600; }
+    .header p  { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+
+    /* Tab bar */
+    .tabs {
+      display: flex;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .tab {
+      flex: 1;
+      padding: 12px 4px;
+      text-align: center;
+      font-size: 11px;
+      color: #64748b;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+    }
+    .tab-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+
+    /* Views */
+    .view { display: none; padding: 16px; }
+    .view.active { display: block; }
+
+    /* Cards */
+    .card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border: 1px solid #334155;
+    }
+    .card-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .card-sub   { font-size: 12px; color: #94a3b8; margin-bottom: 10px; }
+    .card-badge {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      margin-bottom: 10px;
+    }
+    .badge-green { background: #14532d; color: #86efac; }
+    .badge-blue  { background: #1e3a5f; color: #93c5fd; }
+    .badge-red   { background: #450a0a; color: #fca5a5; }
+
+    /* Buttons */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 11px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:active { opacity: 0.8; }
+    .btn-primary { background: #38bdf8; color: #0f172a; }
+    .btn-danger  { background: #ef4444; color: #fff; margin-top: 8px; }
+    .btn-ghost   { background: #334155; color: #f1f5f9; }
+
+    /* Section heading */
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 16px 0 10px;
+    }
+
+    /* AI Chat */
+    #chatBox {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 220px;
+      max-height: 340px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      border: 1px solid #334155;
+    }
+    .msg { margin-bottom: 10px; }
+    .msg-user { text-align: right; }
+    .msg-agent { text-align: left; }
+    .bubble {
+      display: inline-block;
+      padding: 9px 13px;
+      border-radius: 12px;
+      font-size: 13px;
+      max-width: 82%;
+      line-height: 1.4;
+    }
+    .bubble-user  { background: #38bdf8; color: #0f172a; }
+    .bubble-agent { background: #334155; color: #f1f5f9; }
+    .bubble-confirm {
+      background: #14532d;
+      color: #86efac;
+      border: 1px solid #166534;
+      width: 100%;
+      text-align: left;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 4px;
+    }
+
+    /* Chat input row */
+    .chat-input-row { display: flex; gap: 8px; }
+    .chat-input-row input {
+      flex: 1;
+      padding: 11px 14px;
+      border-radius: 8px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f1f5f9;
+      font-size: 14px;
+    }
+    .chat-input-row input:focus { outline: none; border-color: #38bdf8; }
+    .chat-input-row button {
+      padding: 11px 16px;
+      border-radius: 8px;
+      background: #38bdf8;
+      color: #0f172a;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* My bookings */
+    .booking-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      border: 1px solid #334155;
+    }
+    .booking-info { font-size: 13px; }
+    .booking-info strong { display: block; margin-bottom: 2px; }
+    .booking-info span { color: #94a3b8; font-size: 12px; }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #475569;
+    }
+    .empty-icon { font-size: 36px; margin-bottom: 8px; }
+
+    /* Loading spinner */
+    .loading { text-align: center; padding: 20px; color: #64748b; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>✈️ SkyBook AI</h1>
+  <p>Flight School Booking System</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('flights', this)">
+    <span class="tab-icon">🛩️</span>Flights
+  </div>
+  <div class="tab" onclick="switchTab('exams', this)">
+    <span class="tab-icon">📋</span>Exams
+  </div>
+  <div class="tab" onclick="switchTab('ai', this)">
+    <span class="tab-icon">🤖</span>AI Book
+  </div>
+  <div class="tab" onclick="switchTab('mybookings', this)">
+    <span class="tab-icon">📅</span>My Slots
+  </div>
+  <div class="tab" onclick="switchTab('admin', this)">
+    <span class="tab-icon">⚙️</span>Admin
+  </div>
+</div>
+
+<!-- ── FLIGHTS ─────────────────────────────────────── -->
+<div id="flights" class="view active">
+  <p class="section-title">Available Flight Slots</p>
+  <div id="flightList"><div class="loading">Loading slots...</div></div>
+</div>
+
+<!-- ── EXAMS ──────────────────────────────────────── -->
+<div id="exams" class="view">
+  <p class="section-title">Available Exam Slots</p>
+  <div id="examList"><div class="loading">Loading slots...</div></div>
+</div>
+
+<!-- ── AI BOOKING ──────────────────────────────────── -->
+<div id="ai" class="view">
+  <p class="section-title">AI Booking Agent</p>
+  <div id="chatBox">
+    <div class="msg msg-agent">
+      <div class="bubble bubble-agent">
+        👋 Hi! I'm SkyBook AI. Tell me what you need — for example:<br><br>
+        <em>"Book a flight lesson Tuesday morning"</em><br>
+        <em>"I need a PPL skills test next week"</em>
+      </div>
+    </div>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" id="aiInput" placeholder="What would you like to book?" 
+           onkeydown="if(event.key==='Enter') sendToAI()"/>
+    <button onclick="sendToAI()">Send</button>
+  </div>
+</div>
+
+<!-- ── MY BOOKINGS ─────────────────────────────────── -->
+<div id="mybookings" class="view">
+  <p class="section-title">My Bookings</p>
+  <div id="myBookingsList"></div>
+</div>
+
+<!-- ── ADMIN ───────────────────────────────────────── -->
+<div id="admin" class="view">
+  <p class="section-title">Instructor Schedule</p>
+  <div id="instructorList"><div class="loading">Loading...</div></div>
+</div>
+
+<script>
+  // ── Config ────────────────────────────────────────────────
+  const API = 'http://localhost:3000/api'; // ← change to your Render URL later
+  const userId = 'student_' + Math.random().toString(36).slice(2, 7);
+  let myBookings = [];
+  let pendingBooking = null;
+  let chatHistory = [];
+
+  // ── Tab switching ─────────────────────────────────────────
+  function switchTab(name, el) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(name).classList.add('active');
+    el.classList.add('active');
+    if (name === 'flights')    loadFlights();
+    if (name === 'exams')      loadExams();
+    if (name === 'mybookings') renderMyBookings();
+    if (name === 'admin')      loadAdmin();
+  }
+
+  // ── Flight slots ──────────────────────────────────────────
+  async function loadFlights() {
+    const el = document.getElementById('flightList');
+    el.innerHTML = '<div class="loading">Loading slots...</div>';
+    try {
+      const slots = await fetch(`${API}/slots/flights`).then(r => r.json());
+      if (!slots.length) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">🛩️</div>No flight slots available</div>';
+        return;
+      }
+      el.innerHTML = slots.map(s => `
+        <div class="card">
+          <div class="card-title">${s.date} at ${s.time}</div>
+          <div class="card-sub">Instructor: ${s.instructor} &nbsp;·&nbsp; Aircraft: ${s.aircraft}</div>
+          <span class="card-badge badge-green">Available</span>
+          <button class="btn btn-primary" onclick="bookSlot(${s.id}, 'flight', '${s.date}', '${s.time}', '${s.instructor}')">
+            Book This Slot
+          </button>
+        </div>
+      `).join('');
+    } catch {
+      el.innerHTML = '<div class="empty">Could not load slots. Is the server running?</div>';
+    }
+  }
+
+  // ── Exam slots ────────────────────────────────────────────
+  async function loadExams() {
+    const el = document.getElementById('examList');
+    el.innerHTML = '<div class="loading">Loading slots...</div>';
+    try {
+      const slots = await fetch(`${API}/slots/exams`).then(r => r.json());
+      if (!slots.length) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>No exam slots available</div>';
+        return;
+      }
+      el.innerHTML = slots.map(s => `
+        <div class="card">
+          <div class="card-title">${s.date} at ${s.time}</div>
+          <div class="card-sub">Examiner: ${s.instructor} &nbsp;·&nbsp; Location: ${s.aircraft}</div>
+          <span class="card-badge badge-blue">Available</span>
+          <button class="btn btn-primary" onclick="bookSlot(${s.id}, 'exam', '${s.date}', '${s.time}', '${s.instructor}')">
+            Book This Exam
+          </button>
+        </div>
+      `).join('');
+    } catch {
+      el.innerHTML = '<div class="empty">Could not load slots. Is the server running?</div>';
+    }
+  }
+
+  // ── Book a slot ───────────────────────────────────────────
+  async function bookSlot(slotId, type, date, time, instructor) {
+    try {
+      const res = await fetch(`${API}/book`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, slotId })
+      }).then(r => r.json());
+
+      if (res.success) {
+        myBookings.push({ slotId, type, date, time, instructor, userId });
+        alert(`✅ ${res.message}`);
+        if (type === 'flight') loadFlights();
+        else loadExams();
+      } else {
+        alert(`❌ ${res.message}`);
+      }
+    } catch {
+      alert('Could not complete booking. Check your connection.');
+    }
+  }
+
+  // ── My bookings ───────────────────────────────────────────
+  function renderMyBookings() {
+  const el = document.getElementById('myBookingsList');
+  if (!myBookings.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📅</div>No bookings yet.<br>Book a flight or exam slot!</div>';
+    return;
+  }
+  el.innerHTML = myBookings.map((b, index) => `
+    <div class="booking-item" id="booking-${b.slotId}">
+      <div class="booking-info">
+        <strong>${b.type === 'flight' ? '🛩️ Flight Lesson' : '📋 Exam'}</strong>
+        <span>${b.date} at ${b.time}</span>
+        <span>${b.instructor}</span>
+      </div>
+      <button onclick="cancelBooking(${b.slotId}, ${index}, '${b.type}')"
+        style="background:#ef4444;color:#fff;border:none;padding:8px 12px;
+               border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">
+        Cancel
+      </button>
+    </div>
+  `).join('');
+}
+
+//--Cancel Bookings
+async function cancelBooking(slotId, index, type) {
+  if (!confirm('Are you sure you want to cancel this booking?')) return;
+
+  try {
+    const res = await fetch(`${API}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, slotId })
+    }).then(r => r.json());
+
+    if (res.success) {
+      myBookings.splice(index, 1);
+      alert(`✅ ${res.message}`);
+      renderMyBookings();
+      if (type === 'flight') loadFlights();
+      else loadExams();
+    } else {
+      alert(`❌ ${res.message}`);
+    }
+  } catch {
+    alert('Could not cancel booking. Check your connection.');
+  }
+}
+
+
+  // ── AI chat ───────────────────────────────────────────────
+  async function sendToAI() {
+    const input = document.getElementById('aiInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+
+    addBubble('user', msg);
+    chatHistory.push({ role: 'user', content: msg });
+    addBubble('agent', '...');
+
+    try {
+      const res = await fetch(`${API}/ai/book`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, message: msg, history: chatHistory })
+      }).then(r => r.json());
+
+      removeTyping();
+      addBubble('agent', res.reply);
+      chatHistory.push({ role: 'agent', content: res.reply });
+
+      if (res.booking) {
+        pendingBooking = res.booking;
+        addConfirmCard(res.booking);
+      }
+    } catch {
+      removeTyping();
+      addBubble('agent', 'Sorry, I had trouble connecting. Please try again.');
+    }
+  }
+
+  function addBubble(role, text) {
+    const box = document.getElementById('chatBox');
+    const div = document.createElement('div');
+    div.className = `msg msg-${role}`;
+    div.innerHTML = `<div class="bubble bubble-${role}">${text}</div>`;
+    if (text === '...') div.id = 'typing';
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function removeTyping() {
+    const t = document.getElementById('typing');
+    if (t) t.remove();
+  }
+
+  function addConfirmCard(booking) {
+    const box = document.getElementById('chatBox');
+    const div = document.createElement('div');
+    div.id = 'confirmCard';
+    div.innerHTML = `
+      <div class="bubble-confirm">
+        <strong>📋 Booking Summary</strong><br>
+        Type: ${booking.type}<br>
+        Date: ${booking.date} at ${booking.time}<br>
+        Instructor: ${booking.instructor}<br><br>
+        <button class="btn btn-primary" style="margin-top:4px" onclick="confirmAIBooking()">✅ Confirm Booking</button>
+        <button class="btn btn-ghost" style="margin-top:6px" onclick="cancelAIBooking()">Cancel</button>
+      </div>`;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function confirmAIBooking() {
+    if (!pendingBooking) return;
+    await bookSlot(
+      pendingBooking.slotId,
+      pendingBooking.type,
+      pendingBooking.date,
+      pendingBooking.time,
+      pendingBooking.instructor
+    );
+    document.getElementById('confirmCard')?.remove();
+    pendingBooking = null;
+  }
+
+  function cancelAIBooking() {
+    document.getElementById('confirmCard')?.remove();
+    pendingBooking = null;
+    addBubble('agent', 'No problem, booking cancelled. Is there anything else I can help you with?');
+  }
+
+  // ── Admin: instructor schedule ────────────────────────────
+  async function loadAdmin() {
+    const el = document.getElementById('instructorList');
+    el.innerHTML = '<div class="loading">Loading...</div>';
+    try {
+      const instructors = await fetch(`${API}/instructors/schedule`).then(r => r.json());
+      el.innerHTML = instructors.map(i => `
+        <div class="card">
+          <div class="card-title">${i.name}</div>
+          <div class="card-sub">Rating: ${i.rating}</div>
+          <span class="card-badge badge-green">${i.availableSlots} slots available</span>
+          ${i.bookedSlots.length ? `
+            <p style="font-size:12px;color:#94a3b8;margin-top:8px">Booked:</p>
+            ${i.bookedSlots.map(s => `<p style="font-size:12px;color:#f1f5f9;margin-top:2px">· ${s}</p>`).join('')}
+          ` : '<p style="font-size:12px;color:#64748b;margin-top:8px">No bookings yet</p>'}
+        </div>
+      `).join('');
+    } catch {
+      el.innerHTML = '<div class="empty">Could not load instructor data.</div>';
+    }
+  }
+
+  // ── Init ──────────────────────────────────────────────────
+  loadFlights();
+</script>
+</body>
+</html>
